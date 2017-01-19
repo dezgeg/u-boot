@@ -126,32 +126,46 @@
  *   U-Boot (and scripts it executes) typicaly ignore the DT loaded by the FW
  *   and loads its own DT from disk (triggered by boot.scr or extlinux.conf).
  *
- * pxefile_addr_r can be pretty much anywhere that doesn't conflict with
- *   something else. Put it low in memory to avoid conflicts.
+ * kernel_addr_r has different constraints on ARM and Aarch64.
+ *   For Aarch64, the kernel image is uncompressed and must be loaded at
+ *   text_offset bytes (specified in the header of the Image) into a
+ *   2MB boundary. As Linux uses a default text_offset of 0x80000, load
+ *   the kernel at 0x80000 so that the 'booti' command does not need
+ *   to perform any relocation of the Image in the typical case.
  *
- * kernel_addr_r must be within the first 128M of RAM in order for the
+ *   For 32-bit ARM, it must be within the first 128M of RAM in order for the
  *   kernel's CONFIG_AUTO_ZRELADDR option to work. Since the kernel will
  *   decompress itself to 0x8000 after the start of RAM, kernel_addr_r
  *   should not overlap that area, or the kernel will have to copy itself
  *   somewhere else before decompression. Similarly, the address of any other
  *   data passed to the kernel shouldn't overlap the start of RAM. Pushing
- *   this up to 16M allows for a sizable kernel to be decompressed below the
+ *   this up to 48M allows for a sizable kernel to be decompressed below the
  *   compressed load address.
  *
  * scriptaddr can be pretty much anywhere that doesn't conflict with something
- *   else. Choosing 32M allows for the compressed kernel to be up to 16M.
+ *   else. Choosing 64M allows for the compressed kernel to be up to 16M on
+ *   32-bit ARM and roughly 64M for the uncompressed kernel on Aarch64.
  *
- * ramdisk_addr_r simply shouldn't overlap anything else. Choosing 33M allows
- *   for any boot script to be up to 1M, which is hopefully plenty.
+ * pxefile_addr_r can be pretty much anywhere that doesn't conflict with
+ *   something else. Choosing 65M allows for any boot script to be up to 1M,
+ *   which is hopefully plenty.
+ *
+ * ramdisk_addr_r simply shouldn't overlap anything else. Choosing 66M allows
+ *   for any PXE configuration file to be up to 1M, which is hopefully plenty.
  */
+#ifdef CONFIG_ARM64
+# define KERNEL_ADDR_R "0x00080000"
+#else
+# define KERNEL_ADDR_R "0x03000000"
+#endif
 #define ENV_MEM_LAYOUT_SETTINGS \
 	"fdt_high=ffffffff\0" \
 	"initrd_high=ffffffff\0" \
 	"fdt_addr_r=0x00000100\0" \
-	"pxefile_addr_r=0x00100000\0" \
-	"kernel_addr_r=0x01000000\0" \
-	"scriptaddr=0x02000000\0" \
-	"ramdisk_addr_r=0x02100000\0" \
+	"kernel_addr_r=" KERNEL_ADDR_R "\0" \
+	"scriptaddr=0x04000000\0" \
+	"pxefile_addr_r=0x04100000\0" \
+	"ramdisk_addr_r=0x04200000\0" \
 
 #define BOOT_TARGET_DEVICES(func) \
 	func(MMC, mmc, 0) \
