@@ -348,7 +348,7 @@ OBJCOPY		= $(CROSS_COMPILE)objcopy
 OBJDUMP		= $(CROSS_COMPILE)objdump
 AWK		= awk
 PERL		= perl
-PYTHON		?= python
+PYTHON		?= python2
 DTC		?= dtc
 CHECK		= sparse
 

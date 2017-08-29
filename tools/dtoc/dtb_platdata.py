@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 #
 # Copyright (C) 2017 Google, Inc
 # Written by Simon Glass <sjg@chromium.org>
