@@ -23,7 +23,7 @@ int sata_reset(struct udevice *dev)
 {
 	struct ahci_ops *ops = ahci_get_ops(dev);
 
-	if (!ops->reset)
+	if (!ops || !ops->reset)
 		return -ENOSYS;
 
 	return ops->reset(dev);
@@ -33,7 +33,7 @@ int sata_dm_port_status(struct udevice *dev, int port)
 {
 	struct ahci_ops *ops = ahci_get_ops(dev);
 
-	if (!ops->port_status)
+	if (!ops || !ops->port_status)
 		return -ENOSYS;
 
 	return ops->port_status(dev, port);
@@ -43,7 +43,7 @@ int sata_scan(struct udevice *dev)
 {
 	struct ahci_ops *ops = ahci_get_ops(dev);
 
-	if (!ops->scan)
+	if (!ops || !ops->scan)
 		return -ENOSYS;
 
 	return ops->scan(dev);
