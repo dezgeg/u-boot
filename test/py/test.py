@@ -16,11 +16,11 @@ import sys
 sys.argv.pop(0)
 
 # argv; py.test test_directory_name user-supplied-arguments
-args = ['py.test', os.path.dirname(__file__) + '/tests']
+args = ['py.test2', os.path.dirname(__file__) + '/tests']
 args.extend(sys.argv)
 
 try:
-    os.execvp('py.test', args)
+    os.execvp('py.test2', args)
 except:
     # Log full details of any exception for detailed analysis
     import traceback
