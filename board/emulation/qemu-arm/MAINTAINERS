@@ -3,4 +3,4 @@ M:	Tuomas Tynkkynen <tuomas.tynkkynen@iki.fi>
 S:	Maintained
 F:	board/emulation/qemu-arm/
 F:	include/configs/qemu-arm.h
-F:	configs/qemu_arm_defconfigs
+F:	configs/qemu_arm_defconfig
