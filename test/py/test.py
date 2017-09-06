@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # Copyright (c) 2015 Stephen Warren
 # Copyright (c) 2015-2016, NVIDIA CORPORATION. All rights reserved.
@@ -16,11 +16,11 @@ import sys
 sys.argv.pop(0)
 
 # argv; py.test test_directory_name user-supplied-arguments
-args = ['py.test', os.path.dirname(__file__) + '/tests']
+args = ['py.test2', os.path.dirname(__file__) + '/tests']
 args.extend(sys.argv)
 
 try:
-    os.execvp('py.test', args)
+    os.execvp('py.test2', args)
 except:
     # Log full details of any exception for detailed analysis
     import traceback

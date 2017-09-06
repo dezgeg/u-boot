@@ -1,5 +1,7 @@
 /*
- * Xilinx AXI Bridge for PCI Express Driver
+ * Generic PCIE host provided by e.g. QEMU
+ *
+ * Heavily based on drivers/pci/pcie_generic_ecam.c
  *
  * Copyright (C) 2016 Imagination Technologies
  *
@@ -13,35 +15,16 @@
 #include <asm/io.h>
 
 /**
- * struct xilinx_pcie - Xilinx PCIe controller state
+ * struct generic_ecam_pcie - generic_ecam PCIe controller state
  * @cfg_base: The base address of memory mapped configuration space
  */
-struct xilinx_pcie {
+struct generic_ecam_pcie {
 	void *cfg_base;
 };
 
-/* Register definitions */
-#define XILINX_PCIE_REG_PSCR		0x144
-#define XILINX_PCIE_REG_PSCR_LNKUP	BIT(11)
-
 /**
- * pcie_xilinx_link_up() - Check whether the PCIe link is up
- * @pcie: Pointer to the PCI controller state
- *
- * Checks whether the PCIe link for the given device is up or down.
- *
- * Return: true if the link is up, else false
- */
-static bool pcie_xilinx_link_up(struct xilinx_pcie *pcie)
-{
-	uint32_t pscr = __raw_readl(pcie->cfg_base + XILINX_PCIE_REG_PSCR);
-
-	return pscr & XILINX_PCIE_REG_PSCR_LNKUP;
-}
-
-/**
- * pcie_xilinx_config_address() - Calculate the address of a config access
- * @udev: Pointer to the PCI bus
+ * pcie_generic_ecam_config_address() - Calculate the address of a config access
+ * @bus: Pointer to the PCI bus
  * @bdf: Identifies the PCIe device to access
  * @offset: The offset into the device's configuration space
  * @paddress: Pointer to the pointer to write the calculates address to
@@ -55,29 +38,19 @@ static bool pcie_xilinx_link_up(struct xilinx_pcie *pcie)
  *
  * Return: 0 on success, else -ENODEV
  */
-static int pcie_xilinx_config_address(struct udevice *udev, pci_dev_t bdf,
-				      uint offset, void **paddress)
+static int pcie_generic_ecam_config_address(struct udevice *bus, pci_dev_t bdf,
+					    uint offset, void **paddress)
 {
-	struct xilinx_pcie *pcie = dev_get_priv(udev);
-	unsigned int bus = PCI_BUS(bdf);
-	unsigned int dev = PCI_DEV(bdf);
-	unsigned int func = PCI_FUNC(bdf);
+	struct generic_ecam_pcie *pcie = dev_get_priv(bus);
+	//unsigned int bus = PCI_BUS(bdf);
+	//unsigned int dev = PCI_DEV(bdf);
+	//unsigned int func = PCI_FUNC(bdf);
 	void *addr;
 
-	if ((bus > 0) && !pcie_xilinx_link_up(pcie))
-		return -ENODEV;
-
-	/*
-	 * Busses 0 (host-PCIe bridge) & 1 (its immediate child) are
-	 * limited to a single device each.
-	 */
-	if ((bus < 2) && (dev > 0))
-		return -ENODEV;
-
 	addr = pcie->cfg_base;
-	addr += bus << 20;
-	addr += dev << 15;
-	addr += func << 12;
+	addr += PCI_BUS(bdf) << 20;
+	addr += PCI_DEV(bdf) << 15;
+	addr += PCI_FUNC(bdf) << 12;
 	addr += offset;
 	*paddress = addr;
 
@@ -85,7 +58,7 @@ static int pcie_xilinx_config_address(struct udevice *udev, pci_dev_t bdf,
 }
 
 /**
- * pcie_xilinx_read_config() - Read from configuration space
+ * pcie_generic_ecam_read_config() - Read from configuration space
  * @bus: Pointer to the PCI bus
  * @bdf: Identifies the PCIe device to access
  * @offset: The offset into the device's configuration space
@@ -98,16 +71,16 @@ static int pcie_xilinx_config_address(struct udevice *udev, pci_dev_t bdf,
  *
  * Return: 0 on success, else -ENODEV or -EINVAL
  */
-static int pcie_xilinx_read_config(struct udevice *bus, pci_dev_t bdf,
+static int pcie_generic_ecam_read_config(struct udevice *bus, pci_dev_t bdf,
 				   uint offset, ulong *valuep,
 				   enum pci_size_t size)
 {
-	return pci_generic_mmap_read_config(bus, pcie_xilinx_config_address,
+	return pci_generic_mmap_read_config(bus, pcie_generic_ecam_config_address,
 					    bdf, offset, valuep, size);
 }
 
 /**
- * pcie_xilinx_write_config() - Write to configuration space
+ * pcie_generic_ecam_write_config() - Write to configuration space
  * @bus: Pointer to the PCI bus
  * @bdf: Identifies the PCIe device to access
  * @offset: The offset into the device's configuration space
@@ -120,16 +93,16 @@ static int pcie_xilinx_read_config(struct udevice *bus, pci_dev_t bdf,
  *
  * Return: 0 on success, else -ENODEV or -EINVAL
  */
-static int pcie_xilinx_write_config(struct udevice *bus, pci_dev_t bdf,
+static int pcie_generic_ecam_write_config(struct udevice *bus, pci_dev_t bdf,
 				    uint offset, ulong value,
 				    enum pci_size_t size)
 {
-	return pci_generic_mmap_write_config(bus, pcie_xilinx_config_address,
+	return pci_generic_mmap_write_config(bus, pcie_generic_ecam_config_address,
 					     bdf, offset, value, size);
 }
 
 /**
- * pcie_xilinx_ofdata_to_platdata() - Translate from DT to device state
+ * pcie_generic_ecam_ofdata_to_platdata() - Translate from DT to device state
  * @dev: A pointer to the device being operated on
  *
  * Translate relevant data from the device tree pertaining to device @dev into
@@ -138,9 +111,9 @@ static int pcie_xilinx_write_config(struct udevice *bus, pci_dev_t bdf,
  *
  * Return: 0 on success, else -EINVAL
  */
-static int pcie_xilinx_ofdata_to_platdata(struct udevice *dev)
+static int pcie_generic_ecam_ofdata_to_platdata(struct udevice *dev)
 {
-	struct xilinx_pcie *pcie = dev_get_priv(dev);
+	struct generic_ecam_pcie *pcie = dev_get_priv(dev);
 	struct fdt_resource reg_res;
 	DECLARE_GLOBAL_DATA_PTR;
 	int err;
@@ -159,21 +132,21 @@ static int pcie_xilinx_ofdata_to_platdata(struct udevice *dev)
 	return 0;
 }
 
-static const struct dm_pci_ops pcie_xilinx_ops = {
-	.read_config	= pcie_xilinx_read_config,
-	.write_config	= pcie_xilinx_write_config,
+static const struct dm_pci_ops pcie_generic_ecam_ops = {
+	.read_config	= pcie_generic_ecam_read_config,
+	.write_config	= pcie_generic_ecam_write_config,
 };
 
-static const struct udevice_id pcie_xilinx_ids[] = {
-	{ .compatible = "xlnx,axi-pcie-host-1.00.a" },
+static const struct udevice_id pcie_generic_ecam_ids[] = {
+	{ .compatible = "pci-host-ecam-generic" },
 	{ }
 };
 
-U_BOOT_DRIVER(pcie_xilinx) = {
-	.name			= "pcie_xilinx",
+U_BOOT_DRIVER(pcie_generic_ecam) = {
+	.name			= "pcie_generic_ecam",
 	.id			= UCLASS_PCI,
-	.of_match		= pcie_xilinx_ids,
-	.ops			= &pcie_xilinx_ops,
-	.ofdata_to_platdata	= pcie_xilinx_ofdata_to_platdata,
-	.priv_auto_alloc_size	= sizeof(struct xilinx_pcie),
+	.of_match		= pcie_generic_ecam_ids,
+	.ops			= &pcie_generic_ecam_ops,
+	.ofdata_to_platdata	= pcie_generic_ecam_ofdata_to_platdata,
+	.priv_auto_alloc_size	= sizeof(struct generic_ecam_pcie),
 };

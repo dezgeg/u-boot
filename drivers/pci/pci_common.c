@@ -79,6 +79,101 @@ const char *pci_class_str(u8 class)
 	};
 }
 
+/**
+ * pci_generic_mmap_write_config() - Generic helper for writing to
+ * memory-mapped PCI configuration space.
+ * @bus: Pointer to the PCI bus
+ * @addr_f: Callback for calculating the config space address
+ * @bdf: Identifies the PCI device to access
+ * @offset: The offset into the device's configuration space
+ * @value: The value to write
+ * @size: Indicates the size of access to perform
+ *
+ * Write the value @value of size @size from offset @offset within the
+ * configuration space of the device identified by the bus, device & function
+ * numbers in @bdf on the PCI bus @bus. The callback function @addr_f is
+ * responsible for calculating the CPU address of the respective configuration
+ * space offset.
+ *
+ * Return: 0 on success, else -ENODEV or -EINVAL
+ */
+int pci_generic_mmap_write_config(
+	struct udevice *bus,
+	int (*addr_f)(struct udevice *bus, pci_dev_t bdf, uint offset, void** addrp),
+	pci_dev_t bdf,
+	uint offset,
+	ulong value,
+	enum pci_size_t size)
+{
+	void *address;
+	int ret = addr_f(bus, bdf, offset, &address);
+
+	if (ret < 0)
+		return 0;
+
+	switch (size) {
+	case PCI_SIZE_8:
+		writeb(value, address);
+		return 0;
+	case PCI_SIZE_16:
+		writew(value, address);
+		return 0;
+	case PCI_SIZE_32:
+		writel(value, address);
+		return 0;
+	default:
+		return -EINVAL;
+	}
+}
+
+/**
+ * pci_generic_mmap_read_config() - Generic helper for reading from
+ * memory-mapped PCI configuration space.
+ * @bus: Pointer to the PCI bus
+ * @addr_f: Callback for calculating the config space address
+ * @bdf: Identifies the PCI device to access
+ * @offset: The offset into the device's configuration space
+ * @valuep: A pointer at which to store the read value
+ * @size: Indicates the size of access to perform
+ *
+ * Read a value of size @size from offset @offset within the configuration
+ * space of the device identified by the bus, device & function numbers in @bdf
+ * on the PCI bus @bus. The callback function @addr_f is responsible for
+ * calculating the CPU address of the respective configuration space offset.
+ *
+ * Return: 0 on success, else -ENODEV or -EINVAL
+ */
+int pci_generic_mmap_read_config(
+	struct udevice *bus,
+	int (*addr_f)(struct udevice *bus, pci_dev_t bdf, uint offset, void** addrp),
+	pci_dev_t bdf,
+	uint offset,
+	ulong *valuep,
+	enum pci_size_t size)
+{
+	void *address;
+	int ret = addr_f(bus, bdf, offset, &address);
+
+	if (ret < 0) {
+		*valuep = pci_get_ff(size);
+		return 0;
+	}
+
+	switch (size) {
+	case PCI_SIZE_8:
+		*valuep = readb(address);
+		return 0;
+	case PCI_SIZE_16:
+		*valuep = readw(address);
+		return 0;
+	case PCI_SIZE_32:
+		*valuep = readl(address);
+		return 0;
+	default:
+		return -EINVAL;
+	}
+}
+
 __weak int pci_skip_dev(struct pci_controller *hose, pci_dev_t dev)
 {
 	/*
