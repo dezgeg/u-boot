@@ -24,7 +24,7 @@ struct generic_ecam_pcie {
 
 /**
  * pcie_generic_ecam_config_address() - Calculate the address of a config access
- * @pcie: Pointer to the PCI controller state
+ * @bus: Pointer to the PCI bus
  * @bdf: Identifies the PCIe device to access
  * @offset: The offset into the device's configuration space
  * @paddress: Pointer to the pointer to write the calculates address to
@@ -38,18 +38,19 @@ struct generic_ecam_pcie {
  *
  * Return: 0 on success, else -ENODEV
  */
-static int pcie_generic_ecam_config_address(struct generic_ecam_pcie *pcie, pci_dev_t bdf,
-				      uint offset, void **paddress)
+static int pcie_generic_ecam_config_address(struct udevice *bus, pci_dev_t bdf,
+					    uint offset, void **paddress)
 {
-	unsigned int bus = PCI_BUS(bdf);
-	unsigned int dev = PCI_DEV(bdf);
-	unsigned int func = PCI_FUNC(bdf);
+	struct generic_ecam_pcie *pcie = dev_get_priv(bus);
+	//unsigned int bus = PCI_BUS(bdf);
+	//unsigned int dev = PCI_DEV(bdf);
+	//unsigned int func = PCI_FUNC(bdf);
 	void *addr;
 
 	addr = pcie->cfg_base;
-	addr += bus << 20;
-	addr += dev << 15;
-	addr += func << 12;
+	addr += PCI_BUS(bdf) << 20;
+	addr += PCI_DEV(bdf) << 15;
+	addr += PCI_FUNC(bdf) << 12;
 	addr += offset;
 	*paddress = addr;
 
@@ -74,29 +75,8 @@ static int pcie_generic_ecam_read_config(struct udevice *bus, pci_dev_t bdf,
 				   uint offset, ulong *valuep,
 				   enum pci_size_t size)
 {
-	struct generic_ecam_pcie *pcie = dev_get_priv(bus);
-	void *address;
-	int err;
-
-	err = pcie_generic_ecam_config_address(pcie, bdf, offset, &address);
-	if (err < 0) {
-		*valuep = pci_get_ff(size);
-		return 0;
-	}
-
-	switch (size) {
-	case PCI_SIZE_8:
-		*valuep = __raw_readb(address);
-		return 0;
-	case PCI_SIZE_16:
-		*valuep = __raw_readw(address);
-		return 0;
-	case PCI_SIZE_32:
-		*valuep = __raw_readl(address);
-		return 0;
-	default:
-		return -EINVAL;
-	}
+	return pci_generic_mmap_read_config(bus, pcie_generic_ecam_config_address,
+					    bdf, offset, valuep, size);
 }
 
 /**
@@ -117,27 +97,8 @@ static int pcie_generic_ecam_write_config(struct udevice *bus, pci_dev_t bdf,
 				    uint offset, ulong value,
 				    enum pci_size_t size)
 {
-	struct generic_ecam_pcie *pcie = dev_get_priv(bus);
-	void *address;
-	int err;
-
-	err = pcie_generic_ecam_config_address(pcie, bdf, offset, &address);
-	if (err < 0)
-		return 0;
-
-	switch (size) {
-	case PCI_SIZE_8:
-		__raw_writeb(value, address);
-		return 0;
-	case PCI_SIZE_16:
-		__raw_writew(value, address);
-		return 0;
-	case PCI_SIZE_32:
-		__raw_writel(value, address);
-		return 0;
-	default:
-		return -EINVAL;
-	}
+	return pci_generic_mmap_write_config(bus, pcie_generic_ecam_config_address,
+					     bdf, offset, value, size);
 }
 
 /**
