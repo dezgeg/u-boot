@@ -1086,6 +1086,23 @@ int pci_read_config32(pci_dev_t pcidev, int offset, u32 *valuep);
 int pci_read_config16(pci_dev_t pcidev, int offset, u16 *valuep);
 int pci_read_config8(pci_dev_t pcidev, int offset, u8 *valuep);
 
+/* Helper functions for implementing .read_config and .write_config */
+int pci_generic_mmap_write_config(
+	struct udevice *bus,
+	int (*addr_f)(struct udevice *bus, pci_dev_t bdf, uint offset, void** addrp),
+	pci_dev_t bdf,
+	uint offset,
+	ulong value,
+	enum pci_size_t size);
+
+int pci_generic_mmap_read_config(
+	struct udevice *bus,
+	int (*addr_f)(struct udevice *bus, pci_dev_t bdf, uint offset, void** addrp),
+	pci_dev_t bdf,
+	uint offset,
+	ulong *valuep,
+	enum pci_size_t size);
+
 #ifdef CONFIG_DM_PCI_COMPAT
 /* Compatibility with old naming */
 static inline int pci_write_config_dword(pci_dev_t pcidev, int offset,
