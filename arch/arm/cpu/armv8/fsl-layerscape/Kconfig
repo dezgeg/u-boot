@@ -31,6 +31,7 @@ config ARCH_LS1043A
 	select ARCH_EARLY_INIT_R
 	select BOARD_EARLY_INIT_F
 	imply SCSI
+	imply SCSI_AHCI
 	imply CMD_PCI
 
 config ARCH_LS1046A
@@ -57,6 +58,7 @@ config ARCH_LS1046A
 	select ARCH_EARLY_INIT_R
 	select BOARD_EARLY_INIT_F
 	imply SCSI
+	imply SCSI_AHCI
 
 config ARCH_LS1088A
 	bool
