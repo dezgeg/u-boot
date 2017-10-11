@@ -716,6 +716,7 @@ config ARCH_SUNXI
 	imply CMD_GPT
 	imply FAT_WRITE
 	imply PRE_CONSOLE_BUFFER
+	imply SCSI_AHCI
 	imply SPL_GPIO_SUPPORT
 	imply SPL_LIBCOMMON_SUPPORT
 	imply SPL_LIBDISK_SUPPORT
@@ -850,6 +851,7 @@ config TARGET_LS2080AQDS
 	select SUPPORT_SPL
 	select ARCH_MISC_INIT
 	imply SCSI
+	imply SCSI_AHCI
 	help
 	  Support for Freescale LS2080AQDS platform
 	  The LS2080A Development System (QDS) is a high-performance
@@ -865,6 +867,7 @@ config TARGET_LS2080ARDB
 	select SUPPORT_SPL
 	select ARCH_MISC_INIT
 	imply SCSI
+	imply SCSI_AHCI
 	help
 	  Support for Freescale LS2080ARDB platform.
 	  The LS2080A Reference design board (RDB) is a high-performance
@@ -926,6 +929,7 @@ config TARGET_LS1012ARDB
 	select ARM64
 	select BOARD_LATE_INIT
 	imply SCSI
+	imply SCSI_AHCI
 	help
 	  Support for Freescale LS1012ARDB platform.
 	  The LS1012A Reference design board (RDB) is a high-performance

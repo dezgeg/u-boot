@@ -20,6 +20,12 @@ config SATA
 
 	  See also CMD_SATA which provides command-line support.
 
+config SCSI_AHCI
+	bool "Enable SCSI interface to SATA devices"
+	depends on SCSI
+	help
+	  Enable this to allow interfacing SATA devices via the SCSI layer.
+
 menu "SATA/SCSI device support"
 
 config AHCI_PCI
