@@ -348,9 +348,15 @@ OBJCOPY		= $(CROSS_COMPILE)objcopy
 OBJDUMP		= $(CROSS_COMPILE)objdump
 AWK		= awk
 PERL		= perl
-PYTHON		?= python
 DTC		?= $(objtree)/scripts/dtc/dtc
 CHECK		= sparse
+
+PYTHON		?= python
+ifeq ($(PYTHONPATH),)
+PYTHONPATH := tools
+else
+PYTHONPATH := $(PYTHONPATH):tools
+endif
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void -D__CHECK_ENDIAN__ $(CF)
@@ -1380,7 +1386,7 @@ $(timestamp_h): $(srctree)/Makefile FORCE
 	$(call filechk,timestamp.h)
 
 checkbinman: tools
-	@if ! ( echo 'import libfdt' | ( PYTHONPATH=tools $(PYTHON) )); then \
+	@if ! ( echo 'import libfdt' | $(PYTHON) ); then \
 		echo >&2; \
 		echo >&2 '*** binman needs the Python libfdt library.'; \
 		echo >&2 '*** Either install it on your system, or try:'; \
