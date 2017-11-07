@@ -364,6 +364,12 @@ PYTHON3		= python3
 DTC		?= $(objtree)/scripts/dtc/dtc
 CHECK		= sparse
 
+ifeq ($(PYTHONPATH),)
+PYTHONPATH := scripts/dtc/pylibfdt
+else
+PYTHONPATH := $(PYTHONPATH):scripts/dtc/pylibfdt
+endif
+
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void -D__CHECK_ENDIAN__ $(CF)
 
