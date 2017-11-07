@@ -348,9 +348,15 @@ OBJCOPY		= $(CROSS_COMPILE)objcopy
 OBJDUMP		= $(CROSS_COMPILE)objdump
 AWK		= awk
 PERL		= perl
-PYTHON		?= python
 DTC		?= $(objtree)/scripts/dtc/dtc
 CHECK		= sparse
+
+PYTHON		?= python
+ifeq ($(PYTHONPATH),)
+PYTHONPATH := tools
+else
+PYTHONPATH := $(PYTHONPATH):tools
+endif
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void -D__CHECK_ENDIAN__ $(CF)
