@@ -78,7 +78,7 @@
 #if defined(CONFIG_CMD_KGDB)
 #define CONFIG_SYS_CBSIZE	1024
 #else
-#define CONFIG_SYS_CBSIZE	256
+#define CONFIG_SYS_CBSIZE	512
 #endif
 #endif
 
