@@ -82,12 +82,6 @@
  */
 #define CONFIG_USB_MUSB_PIO_ONLY
 
-/*-----------------------------------------------------------------------
- * File System Configuration
- */
-/* FAT FS */
-#define CONFIG_SUPPORT_VFAT
-
 /* -------------------------------------------------
  * Environment
  */
