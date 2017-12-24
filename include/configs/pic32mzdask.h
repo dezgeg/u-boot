@@ -88,9 +88,6 @@
 /* FAT FS */
 #define CONFIG_SUPPORT_VFAT
 
-/* EXT4 FS */
-#define CONFIG_FS_EXT4
-
 /* -------------------------------------------------
  * Environment
  */
