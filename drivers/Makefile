@@ -90,6 +90,7 @@ obj-y += spmi/
 obj-y += sysreset/
 obj-y += tpm/
 obj-y += video/
+obj-y += virtio/
 obj-y += watchdog/
 obj-$(CONFIG_QE) += qe/
 obj-$(CONFIG_U_QE) += qe/

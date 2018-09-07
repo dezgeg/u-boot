@@ -1,0 +1,8 @@
+menu "Virtio Support"
+
+config VIRTIO
+	bool "Enable Virtio"
+	help
+	  Enable Virtio.
+
+endmenu # menu "Virtio Support"
