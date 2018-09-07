@@ -327,6 +327,12 @@ config DRIVER_TI_EMAC
 	help
 	   Support for davinci emac
 
+config VIRTIO_NET
+        bool "Virtio network driver support"
+        depends on VIRTIO && DM_ETH
+        help
+          TODO write this
+
 config XILINX_AXIEMAC
 	depends on DM_ETH && (MICROBLAZE || ARCH_ZYNQ || ARCH_ZYNQMP)
 	select PHYLIB
