@@ -203,6 +203,31 @@
 	BOOT_TARGET_DEVICES_references_SCSI_without_CONFIG_SCSI
 #endif
 
+#ifdef CONFIG_VIRTIO
+#define BOOTENV_RUN_VIRTIO_INIT "run virtio_init; "
+#define BOOTENV_SET_VIRTIO_NEED_INIT "setenv virtio_need_init; "
+#define BOOTENV_SHARED_VIRTIO \
+	"virtio_init=" \
+		"if ${virtio_need_init}; then " \
+			"setenv virtio_need_init false; " \
+			"virtio scan; " \
+		"fi\0" \
+	\
+	"virtio_boot=" \
+		BOOTENV_RUN_VIRTIO_INIT \
+		BOOTENV_SHARED_BLKDEV_BODY(virtio)
+#define BOOTENV_DEV_VIRTIO	BOOTENV_DEV_BLKDEV
+#define BOOTENV_DEV_NAME_VIRTIO	BOOTENV_DEV_NAME_BLKDEV
+#else
+#define BOOTENV_RUN_VIRTIO_INIT
+#define BOOTENV_SET_VIRTIO_NEED_INIT
+#define BOOTENV_SHARED_VIRTIO
+#define BOOTENV_DEV_VIRTIO \
+	BOOT_TARGET_DEVICES_references_VIRTIO_without_CONFIG_VIRTIO
+#define BOOTENV_DEV_NAME_VIRTIO \
+	BOOT_TARGET_DEVICES_references_VIRTIO_without_CONFIG_VIRTIO
+#endif
+
 #ifdef CONFIG_IDE
 #define BOOTENV_SHARED_IDE	BOOTENV_SHARED_BLKDEV(ide)
 #define BOOTENV_DEV_IDE		BOOTENV_DEV_BLKDEV
@@ -343,6 +368,7 @@
 	BOOTENV_SHARED_USB \
 	BOOTENV_SHARED_SATA \
 	BOOTENV_SHARED_SCSI \
+	BOOTENV_SHARED_VIRTIO \
 	BOOTENV_SHARED_IDE \
 	BOOTENV_SHARED_UBIFS \
 	BOOTENV_SHARED_EFI \
